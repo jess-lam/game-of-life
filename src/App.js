@@ -15,14 +15,19 @@ const gridPoints = [
   [-1, 0]
 ]
 
-const Grid = () => {
-    const [running, setRunning] = useState(false);
-    const [grid, setGrid] = useState(() => {
-        const rows = [];
+const generateEmptyGrid = () => {
+  const rows = [];
         for (let i = 0; i < numRows; i++) {
             rows.push(Array.from(Array(numCols), () => 0));
         }
         return rows
+}
+
+const Grid = () => {
+    const [running, setRunning] = useState(false);
+    const [speed, setSpeed] = useState(500)
+    const [grid, setGrid] = useState(() => {
+        return generateEmptyGrid()
     });
 
 
@@ -58,8 +63,8 @@ const Grid = () => {
 
       })
 
-      setTimeout(runSimulation, 1000);
-    }, [])
+      setTimeout(runSimulation, speed);
+    }, [speed])
 
     console.log(grid);
     return (
@@ -73,7 +78,30 @@ const Grid = () => {
           }
         }}
         >
-          {running ? 'Stop' : 'Start'}</button>
+          {running ? 'Stop' : 'Start'}
+          </button>
+          <button onClick = {() => {
+            const rows = [];
+            for (let i = 0; i < numRows; i++) {
+                rows.push(Array.from(Array(numCols), () => Math.random() > 0.5 ? 1 : 0));
+            }
+            setGrid(rows);
+
+          }}>
+            Random
+          </button>
+
+          <button onClick = {() => {
+            setGrid(generateEmptyGrid());
+
+          }}>
+            Clear
+          </button>
+
+          <button onClick = {() => setSpeed(1000)}>Slow</button>
+          <button onClick = {() => setSpeed(500)}>Normal</button>
+          <button onClick = {() => setSpeed(100)}>Fast</button>
+
         <div
         style={{
           display: "grid",
@@ -84,10 +112,14 @@ const Grid = () => {
               <div
               key ={`${i} - ${j}`} 
               onClick={() => {
-                const newGrid = produce(grid, gridCopy => {
-                  gridCopy[i][j] = grid[i][j] ? 0 : 1;
-                })
-                setGrid(newGrid)
+                if (!running) {
+                  const newGrid = produce(grid, gridCopy => {
+                    gridCopy[i][j] = grid[i][j] ? 0 : 1;
+                  })
+                  setGrid(newGrid)
+                } else {
+                  return
+                }
               }}
                 style= {{
                   width: 20,
