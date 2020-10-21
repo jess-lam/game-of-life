@@ -25,7 +25,8 @@ const generateEmptyGrid = () => {
 
 const Grid = () => {
     const [running, setRunning] = useState(false);
-    const [speed, setSpeed] = useState(500)
+    const [generation, setGeneration] = useState(0)
+    const [speed, setSpeed] = useState(500) 
     const [grid, setGrid] = useState(() => {
         return generateEmptyGrid()
     });
@@ -33,7 +34,14 @@ const Grid = () => {
 
     const runningRef = useRef(running);
     runningRef.current = running
-    const runSimulation = useCallback(() => {
+
+    const generationRef = useRef(generation);
+    generationRef.current = generation
+
+    const speedRef = useRef(speed);
+    speedRef.current = speed
+
+    const runSimulation = useCallback((speed) => {
       if (!runningRef.current) {
         return;
       }
@@ -62,11 +70,10 @@ const Grid = () => {
         })
 
       })
+      setGeneration(generationRef.current + 1)
+      setTimeout(runSimulation, speedRef.current);
+    }, [speedRef.current])
 
-      setTimeout(runSimulation, speed);
-    }, [speed])
-
-    console.log(grid);
     return (
       <>
         <button
@@ -98,9 +105,9 @@ const Grid = () => {
             Clear
           </button>
 
-          <button onClick = {() => setSpeed(1000)}>Slow</button>
+          <button onClick = {() => setSpeed(speedRef.current + 500)}>Slow</button>
           <button onClick = {() => setSpeed(500)}>Normal</button>
-          <button onClick = {() => setSpeed(100)}>Fast</button>
+          <button onClick = {() => setSpeed(speedRef.current - 300)}>Fast</button>
 
         <div
         style={{
@@ -131,6 +138,7 @@ const Grid = () => {
               ))
             )}
         </div>
+                <p>Generation: {generation}</p>
       </>
 
     )
