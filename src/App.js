@@ -1,8 +1,8 @@
-import React, {useState, useRef, useCallback} from 'react'
+import React, {useState, useRef, useCallback, useEffect} from 'react'
 import produce from 'immer';
 
-const numRows = 25;
-const numCols = 25;
+// let numRows = 25;
+// let numCols = 25;
 
 const gridPoints = [
   [0, 1],
@@ -15,21 +15,42 @@ const gridPoints = [
   [-1, 0]
 ]
 
-const generateEmptyGrid = () => {
-  const rows = [];
-        for (let i = 0; i < numRows; i++) {
-            rows.push(Array.from(Array(numCols), () => 0));
-        }
-        return rows
-}
+// const generateEmptyGrid = () => {
+//   const rows = [];
+//         for (let i = 0; i < numRows; i++) {
+//             rows.push(Array.from(Array(numCols), () => 0));
+//         }
+//         return rows
+// }
 
 const Grid = () => {
     const [running, setRunning] = useState(false);
     const [generation, setGeneration] = useState(0)
-    const [speed, setSpeed] = useState(500) 
+    const [speed, setSpeed] = useState(500)
+    const [size, setSize] = useState({ numRows: 35, numCols: 35})
+    // const [numCols, setNumCols] = useState(35)
+
+    // const handleClick = () => {
+    //   setNumRows(50);
+    //   setNumCols(50);
+    // }
+    
+
+    const generateEmptyGrid = useCallback(() => {
+      const rows = [];
+            for (let i = 0; i < size.numRows; i++) {
+                rows.push(Array.from(Array(size.numCols), () => 0));
+            }
+            return rows
+    },[size.numRows, size.numCols])
+
     const [grid, setGrid] = useState(() => {
         return generateEmptyGrid()
     });
+
+    useEffect(() => {
+      setGrid(() => generateEmptyGrid())
+    },[generateEmptyGrid, size.numRows, size.numCols])
 
 
     const runningRef = useRef(running);
@@ -41,20 +62,20 @@ const Grid = () => {
     const speedRef = useRef(speed);
     speedRef.current = speed
 
-    const runSimulation = useCallback((speed) => {
+    const runSimulation = useCallback(() => {
       if (!runningRef.current) {
         return;
       }
       setGrid((g) => {
         return produce(g, gridCopy => {
-          for (let i = 0; i < numRows; i++) {
-            for (let j=0; j < numCols; j++) {
+          for (let i = 0; i < size.numRows; i++) {
+            for (let j=0; j < size.numCols; j++) {
               let neighbors = 0;
               gridPoints.forEach(([x, y]) => {
                 const newI = i + x;
                 const newJ = j + y;
-                if (newI >= 0 && newI < numRows &&
-                  newJ < numCols) {
+                if (newI >= 0 && newI < size.numRows &&
+                  newJ < size.numCols) {
                     neighbors += g[newI][newJ] 
                   }
               })
@@ -72,7 +93,7 @@ const Grid = () => {
       })
       setGeneration(generationRef.current + 1)
       setTimeout(runSimulation, speedRef.current);
-    }, [speedRef.current])
+    }, [size.numRows, size.numCols])
 
     return (
       <>
@@ -89,8 +110,8 @@ const Grid = () => {
           </button>
           <button onClick = {() => {
             const rows = [];
-            for (let i = 0; i < numRows; i++) {
-                rows.push(Array.from(Array(numCols), () => Math.random() > 0.5 ? 1 : 0));
+            for (let i = 0; i < size.numRows; i++) {
+                rows.push(Array.from(Array(size.numCols), () => Math.random() > 0.5 ? 1 : 0));
             }
             setGrid(rows);
 
@@ -109,10 +130,15 @@ const Grid = () => {
           <button onClick = {() => setSpeed(500)}>Normal</button>
           <button onClick = {() => setSpeed(speedRef.current - 300)}>Fast</button>
 
+          <button onClick = {() => setSize({numRows: 50, numCols: 50})}>Larger Grid</button>
+          <button onClick = {() => setSize({numRows: 35, numCols: 35}) }>Regular Grid</button>
+          <button onClick = {() => setSize({numRows: 25, numCols: 25}) }>Smaller Grid</button>
+
         <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${numCols}, 20px)`
+          gridTemplateRows: `repeat(${size.numRows}, 20px)`,
+          gridTemplateColumns: `repeat(${size.numCols}, 20px)`
         }}>
           {grid.map((rows, i) => 
             rows.map((col, j) => (
